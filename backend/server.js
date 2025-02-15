@@ -1,3 +1,4 @@
+const PROXIMITY = 1000;
 // server.js
 const express = require("express");
 const cors = require("cors");
@@ -61,7 +62,7 @@ app.get("/getNearbyMessages", async (req, res) => {
         snapshot.forEach((doc) => {
             const data = doc.data();
             const distance = haversineDistance(parseFloat(lat), parseFloat(lng), data.lat, data.lng);
-            if (distance < 1) {
+            if (distance < PROXIMITY) {
                 messages.push({
                     id: doc.id,
                     user: data.user,
