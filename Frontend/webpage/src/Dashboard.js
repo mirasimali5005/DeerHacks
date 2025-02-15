@@ -127,4 +127,8 @@ function Dashboard() {
   );
 }
 
+<<<<<<< HEAD
 export default Dashboard;
+=======
+export default Dashboard;
+>>>>>>> c977a40 (Webpage)
