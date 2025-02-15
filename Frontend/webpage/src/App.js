@@ -3,34 +3,39 @@ import "./App.css";
 
 function App() {
   const [showMessages, setShowMessages] = useState(false);
-  const [dropMessage, setDropMessage] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [messageTitle, setMessageTitle] = useState("");
-
-  const handleDropMessage = () => {
-    console.log("Message Dropped:", messageTitle, dropMessage);
-    setShowModal(false);
-    setMessageTitle("");
-    setDropMessage("");
-  };
+  const [showPopup, setShowPopup] = useState(false);
+  const messages = ["Message 1", "Message 2", "Message 3"];
 
   return (
     <div className="container">
-      {/* Top Left - Messages Button */}
+      {/* Top Left - Messages Button with Notification
       <button
         className="messages-button"
         onClick={() => setShowMessages(!showMessages)}
       >
-        Messages
+        Messages {messages.length > 0 && <span className="notification-badge">{messages.length}</span>}
       </button>
       {showMessages && (
-        <div className="popup-menu">
-          <p>Message 1</p>
-          <p>Message 2</p>
-          <p>Message 3</p>
+        <div className="popup-overlay">
+          <div className="popup-menu">
+            {messages.map((msg, index) => (
+              <p key={index}>{msg}</p>
+            ))}
+            <button onClick={() => setShowMessages(false)} className="close-button">Close</button>
+          </div>
         </div>
-      )}
-
+      )} */}
+    <div className="top-left">
+      <button
+        className="messages-button"
+        onClick={() => setShowMessages(!showMessages)}
+      >
+        Messages{" "}
+        {messages.length > 0 && (
+          <span className="notification-badge">{messages.length}</span>
+        )}
+      </button>
+    </div>
       {/* Top Right - Profile & Settings */}
       <div className="top-right">
         <div className="profile-icon">👤</div>
@@ -39,37 +44,18 @@ function App() {
 
       {/* Mini Map Section */}
       <div className="mini-map">
-        <button className="drop-message-button" onClick={() => setShowModal(true)}>
-          Drop a Message
+        <button className="open-popup-button" onClick={() => setShowPopup(true)}>
+          Open AR Window
         </button>
       </div>
 
-      {/* Message Drop Modal */}
-      {showModal && (
-        <div className="modal-background">
-          <div className="modal-content">
-            <h3 className="modal-title">Drop a Message</h3>
-            <input
-              type="text"
-              placeholder="Title"
-              value={messageTitle}
-              onChange={(e) => setMessageTitle(e.target.value)}
-              className="input-field"
-            />
-            <textarea
-              placeholder="Your message..."
-              value={dropMessage}
-              onChange={(e) => setDropMessage(e.target.value)}
-              className="input-field"
-            ></textarea>
-            <div className="modal-buttons">
-              <button onClick={handleDropMessage} className="confirm-button">
-                Confirm
-              </button>
-              <button onClick={() => setShowModal(false)} className="cancel-button">
-                Cancel
-              </button>
-            </div>
+      {/* Popup Window with Greyed Out Background */}
+      {showPopup && (
+        <div className="modal-overlay" onClick={() => setShowPopup(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>AR Placeholder Window</h2>
+            <p>This space is allocated for future AR features.</p>
+            <button onClick={() => setShowPopup(false)} className="close-button">X</button>
           </div>
         </div>
       )}
