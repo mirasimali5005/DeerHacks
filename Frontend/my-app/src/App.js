@@ -1,13 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { Moon, Sun } from 'lucide-react';
+import { jwtDecode } from "jwt-decode";  // FIXED IMPORT
+import './App.css';
 
-function App() {
+const GOOGLE_CLIENT_ID = "23212139674-c1b61g95jaf7as88m353jom7b35t6rfs.apps.googleusercontent.com"; // Replace with your actual Client ID
+
+const App = () => {
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme ? JSON.parse(savedTheme) : true;
+  });
+
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem('theme', JSON.stringify(isDark));
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark(prev => !prev);
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,129 +36,145 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match!");
+
+    if (!isLogin && !formData.name.trim()) {
+      setError("Name is required!");
       return;
     }
 
-    setError("");
-    console.log(isLogin ? "Logging in..." : "Signing up...", formData);
-    // Send formData to backend API
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match!");
+      return;
+    }
+
+    setError('');
+    console.log(isLogin ? 'Logging in...' : 'Signing up...', formData);
   };
 
+  const handleGoogleSuccess = (credentialResponse) => {
+    const decoded = jwtDecode(credentialResponse.credential); // FIXED DECODE FUNCTION
+    setUser(decoded);
+    console.log("Google User:", decoded);
+  };
+
+  const handleGoogleFailure = () => {
+    setError("Google Sign-In failed. Please try again.");
+  };
+
+  const currentTheme = isDark ? 'dark' : 'light';
+
   return (
-    <div style={styles.container}>
-      <div style={styles.formBox}>
-        <h2 style={styles.title}>{isLogin ? "Login" : "Sign Up"}</h2>
-        {error && <p style={styles.error}>{error}</p>}
-        
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-          
-          {!isLogin && (
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-          )}
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <div className={`theme-container ${currentTheme}`}>
+        <button
+          onClick={toggleTheme}
+          className={`theme-toggle ${currentTheme}`}
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
 
-          <button type="submit" style={styles.button}>
-            {isLogin ? "Login" : "Sign Up"}
-          </button>
-        </form>
+        <div className="main-container">
+          <div className="form-container">
+            <div className={`form-box ${currentTheme}`}>
+              <h2 className={`title ${currentTheme}`}>
+                {isLogin ? 'Welcome Back' : 'Create Account'}
+              </h2>
 
-        <p style={styles.toggleText}>
-          {isLogin ? "Don't have an account?" : "Already have an account?"}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            style={styles.toggleButton}
-          >
-            {isLogin ? "Sign Up" : "Login"}
-          </button>
-        </p>
+              {error && (
+                <div className="error-message">
+                  <p className="error-text">{error}</p>
+                </div>
+              )}
+
+              {user ? (
+                <div className="user-info">
+                  <img src={user.picture} alt="User" className="user-avatar" />
+                  <p>{user.name}</p>
+                  <p>{user.email}</p>
+                </div>
+              ) : (
+                <>
+                  <form onSubmit={handleSubmit} className="form">
+                    {!isLogin && (
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder="Full Name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required={!isLogin}
+                        className={`input-field ${currentTheme}`}
+                      />
+                    )}
+
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className={`input-field ${currentTheme}`}
+                    />
+
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      className={`input-field ${currentTheme}`}
+                    />
+
+                    {!isLogin && (
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="Confirm Password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        className={`input-field ${currentTheme}`}
+                      />
+                    )}
+
+                    <button type="submit" className="submit-button">
+                      {isLogin ? 'Sign In' : 'Create Account'}
+                    </button>
+                  </form>
+
+                  <div className="or-divider">OR</div>
+
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleFailure}
+                  />
+                </>
+              )}
+
+              <div className="toggle-text">
+                <button
+                  onClick={() => setIsLogin(!isLogin)}
+                  className={`toggle-button ${currentTheme}`}
+                >
+                  {isLogin ? (
+                    <>
+                      Need an account? <span className="underline-text">Sign up</span>
+                    </>
+                  ) : (
+                    <>
+                      Already have an account? <span className="underline-text">Sign in</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </GoogleOAuthProvider>
   );
-}
-
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#f4f4f4",
-  },
-  formBox: {
-    width: "300px",
-    padding: "20px",
-    backgroundColor: "white",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-    borderRadius: "10px",
-    textAlign: "center",
-  },
-  title: {
-    marginBottom: "15px",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  input: {
-    padding: "10px",
-    marginBottom: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    fontSize: "16px",
-  },
-  button: {
-    padding: "10px",
-    backgroundColor: "#007bff",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "16px",
-  },
-  error: {
-    color: "red",
-    fontSize: "14px",
-    marginBottom: "10px",
-  },
-  toggleText: {
-    marginTop: "10px",
-  },
-  toggleButton: {
-    border: "none",
-    background: "none",
-    color: "#007bff",
-    cursor: "pointer",
-    fontSize: "14px",
-    marginLeft: "5px",
-  },
 };
 
 export default App;
