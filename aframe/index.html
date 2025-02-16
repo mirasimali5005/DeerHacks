@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markerless AR Doodle & Text</title>
+
+  <!-- A-Frame & AR.js -->
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 15px;
+      z-index: 999;
+      border-radius: 8px;
+    }
+    input, button {
+      display: block;
+      margin: 5px 0;
+      padding: 5px;
+    }
+    canvas {
+      border: 1px solid white;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- AR Scene (Markerless) -->
+  <a-scene embedded arjs="sourceType: webcam;">
+    <!-- Whiteboard with a white background -->
+    <a-plane id="doodlePlane" position="0 1 -2" height="1" width="1" material="side: double; color: white;">
+      <!-- Centered text on the whiteboard -->
+      <a-entity id="displayText"
+                text="value: Hello AR!; color: black; align: center;"
+                position="0 0 0.01">
+      </a-entity>
+    </a-plane>
+
+    <a-camera position="0 1.6 0"></a-camera>
+  </a-scene>
+
+  <!-- UI for User Input -->
+  <div id="ui">
+    <h3>Add Your AR Object</h3>
+    <label>Name:</label>
+    <input type="text" id="textInput" placeholder="Type your name..." />
+    <button type="button">Submit</button>
+    <button type="button">Delete Field</button>
+
+    <hr />
+
+    <label>Enter Text:</label>
+    <input type="text" id="textInput" placeholder="Type something..." />
+    <button type="button" onclick="updateText()">Set Text</button>
+    <button type="button">Delete Text</button>
+
+    <hr />
+
+    <label>Draw a Doodle:</label>
+    <canvas id="drawingCanvas" width="200" height="200"></canvas>
+    <button type="button" onclick="clearCanvas()">Clear</button>
+    <button type="button" onclick="saveDoodle()">Set Doodle</button>
+    <button type="button"> Delete Doodle</button>
+
+    <hr />
+
+    <button type="button">Add a Photo</button><button type="button">Add a Video</button>
+  </div>
+
+  <script>
+    /* --- TEXT HANDLING --- */
+    function updateText() {
+      let text = document.getElementById("textInput").value;
+      if (text.trim() === "") return;
+      document.getElementById("displayText").setAttribute("text", `value: ${text}; color: black; align: center;`);
+      
+      // Use geolocation to get your device's coordinates.
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const geo = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          const payload = { type: "text", geo: geo, text: text };
+          storeValues(payload);
+        }, (error) => {
+          console.error("Geolocation error:", error);
+        });
+      } else {
+        console.error("Geolocation is not supported by this browser.");
+      }
+    }
+
+    /* --- DOODLE HANDLING --- */
+    const canvas = document.getElementById("drawingCanvas");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+
+    // Mouse events for drawing.
+    canvas.addEventListener("mousedown", (e) => {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    });
+    canvas.addEventListener("mousemove", (e) => {
+      if (!drawing) return;
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "black";
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+    });
+    canvas.addEventListener("mouseup", () => {
+      drawing = false;
+      ctx.closePath();
+    });
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function saveDoodle() {
+      // Create an offscreen canvas to composite the doodle on a white background.
+      const offscreenCanvas = document.createElement("canvas");
+      offscreenCanvas.width = canvas.width;
+      offscreenCanvas.height = canvas.height;
+      const offscreenCtx = offscreenCanvas.getContext("2d");
+
+      // Fill with white so the board remains white.
+      offscreenCtx.fillStyle = "white";
+      offscreenCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      // Draw the doodle on top.
+      offscreenCtx.drawImage(canvas, 0, 0);
+      let dataURL = offscreenCanvas.toDataURL("image/png");
+
+      // Load the texture using THREE.TextureLoader.
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.load(dataURL, function (texture) {
+        const doodlePlane = document.getElementById("doodlePlane");
+        const mesh = doodlePlane.getObject3D("mesh");
+        if (mesh) {
+          // Apply the texture while keeping a white background.
+          mesh.material.map = texture;
+          mesh.material.color.set(0xffffff);
+          mesh.material.needsUpdate = true;
+        }
+
+        // Use geolocation to get your device's coordinates.
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const geo = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy
+            };
+            const payload = { type: "doodle", geo: geo, image: dataURL };
+            storeValues(payload);
+          }, (error) => {
+            console.error("Geolocation error:", error);
+          });
+        } else {
+          console.error("Geolocation is not supported by this browser.");
+        }
+      });
+    }
+
+    /* --- STORE VALUES --- */
+    function storeValues(data) {
+      // Send the data to your backend endpoint to store in values.txt.
+      fetch('/store-values', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.text())
+      .then(result => console.log('Stored values:', result))
+      .catch(error => console.error('Error storing values:', error));
+    }
+  </script>
+</body>
+</html>
