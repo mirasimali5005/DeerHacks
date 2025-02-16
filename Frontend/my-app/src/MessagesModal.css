@@ -1,0 +1,59 @@
+/* Messages Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  h2 {
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .close-button {
+    background: #e3342f;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  
+  .close-button:hover {
+    background: #cc1f1a;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .message-item {
+    background: #f3f4f6;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
+  }
+  
+  .modal-container p {
+    color: #666;
+  }
+  

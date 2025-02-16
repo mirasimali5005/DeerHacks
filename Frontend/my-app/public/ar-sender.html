@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Markerless AR Doodle & Text with Nearby Messages</title>
+
+  <!-- A-Frame & AR.js -->
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
+
+  
+</head>
+<body>
+  <!-- AR Scene (Note: This setup is marker-based out of the box) -->
+  <a-scene embedded arjs="sourceType: webcam;">
+    <!-- AR Text Entity -->
+    <a-entity
+      id="displayText"
+      font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+      text="value: Loading...; width:6; color: white; align: center;"
+      position="0 1.5 -2">
+    </a-entity>
+
+    <a-text
+      id="displayText"
+      font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+      position="0 2 -3"
+      scale="0.5 0.5 0.5"
+    ></a-text>
+
+    <a-camera position="0 1.6 0"></a-camera>
+  </a-scene>
+
+  <script>
+    /*** DUMMY COORDINATES ***/
+    const DUMMY_LAT = 51.39908257057501;
+    const DUMMY_LNG = 0.1364062125017154;
+
+    /*** FETCH DATA ON PAGE LOAD ***/
+    window.addEventListener("load", () => {
+      // 1. Optional test endpoint
+      fetch("https://firebase-backend-a2m7.onrender.com/test")
+        .then((res) => res.text())
+        .then((data) => {
+          console.log("Test endpoint response:", data);
+        })
+        .catch((err) => console.error("Error fetching test endpoint:", err));
+
+      // 2. Actual "nearby messages" endpoint
+      fetch(`https://firebase-backend-a2m7.onrender.com/getNearbyMessages?lat=${DUMMY_LAT}&lng=${DUMMY_LNG}`)
+        .then((res) => res.json())
+        .then((messages) => {
+          console.log("Nearby messages:", messages);
+          /*
+            Expected format: [
+              { text: "Hello from Toronto!", lat: 43.6535, lng: -79.3835 },
+              { text: "Some other location", lat: 42.0, lng: -80.0 },
+              ...
+            ]
+          */
+          const matchedTexts = [];
+          messages.forEach((msg) => {
+            // Compare the lat/lng with our dummy coordinates
+            if (msg.lat === DUMMY_LAT && msg.lng === DUMMY_LNG) {
+              matchedTexts.push(msg.text);
+            }
+          });
+
+          // If any messages match, display them on the AR text entity
+          if (matchedTexts.length > 0) {
+            const combinedText = matchedTexts.join("\\n");
+            document
+              .getElementById("displayText")
+              .setAttribute("text", `value: ${combinedText}; color: white; align: center;`);
+          } else {
+            document
+              .getElementById("displayText")
+              .setAttribute("text", "value: No nearby messages found; color: white; align: center;");
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching nearby messages:", err);
+          document
+            .getElementById("displayText")
+            .setAttribute("text", "value: Error fetching messages; color: red; align: center;");
+        });
+    });
+    // Pointer Up (mouse/touch end)
+    canvas.addEventListener("pointerup", () => {
+      drawing = false;
+      ctx.closePath();
+    });
+
+    // (Optional) Pointer Cancel to handle abrupt interrupts
+    canvas.addEventListener("pointercancel", () => {
+      drawing = false;
+      ctx.closePath();
+    });
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  </script>
+</body>
+</html>
