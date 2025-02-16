@@ -66,7 +66,7 @@ app.get("/getNearbyMessages", async (req, res) => {
                 messages.push({
                     id: doc.id,
                     user: data.user,
-                    text: data.text.text.startsWith("data:image/") ? "[Image]" : data.text,
+                    text: data.text,
                     lat: data.lat,
                     lng: data.lng,
                     private: data.private,
