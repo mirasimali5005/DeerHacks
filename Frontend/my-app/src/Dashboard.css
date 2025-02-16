@@ -31,7 +31,7 @@
   justify-content: center;
 }
 
-/* ========== TOP-LEFT: MESSAGES BUTTON ========== */
+/* ========== TOP-LEFT: AR BUTTON ========== */
 .top-left {
   position: fixed;
   top: 1rem;
@@ -39,8 +39,7 @@
   z-index: 1000;
 }
 
-.messages-button {
-  position: relative;
+.message-button {
   padding: 8px 12px;
   background-color: #3B82F6;
   color: white;
@@ -49,83 +48,33 @@
   cursor: pointer;
   font-size: 14px;
 }
-.messages-button:hover {
+
+.ar-button:hover {
   background-color: #2563EB;
 }
 
-.notification-badge {
-  background-color: red;
-  color: white;
-  font-size: 12px;
-  border-radius: 50%;
-  padding: 3px 7px;
-  position: absolute;
-  top: -5px;
-  right: -10px;
-}
-
-/* The popup for messages */
-.messages-popup {
-  position: absolute;
-  top: 40px;
-  left: 0;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 0.5rem;
-  z-index: 1100;
-  min-width: 120px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.theme-container.dark .messages-popup {
-  background-color: #374151;
-  border-color: #4B5563;
-  color: #fff;
-}
-
-/* Popup items */
-.popup-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.5rem;
-  cursor: pointer;
-  border-radius: 0.25rem;
-}
-
-.popup-item:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-}
-.theme-container.dark .popup-item:hover {
-  background-color: rgba(59, 130, 246, 0.3);
-}
-
-/* ========== TOP-RIGHT: PROFILE, SETTINGS, THEME TOGGLE ========== */
+/* ========== TOP-RIGHT: PROFILE & THEME TOGGLE ========== */
 .top-right {
   position: fixed;
   top: 1rem;
   right: 1rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   z-index: 1000;
 }
 
-/* Icons for profile & settings */
+/* Icon styling for profile */
 .icon {
   cursor: pointer;
 }
 
-/* Adjust icon color based on theme */
 .theme-container.light .icon {
-  color: #1F2937; /* dark text in light mode */
+  color: #1F2937;
 }
+
 .theme-container.dark .icon {
-  color: #F9FAFB; /* light text in dark mode */
+  color: #F9FAFB;
 }
 
 .icon:hover {
@@ -184,6 +133,23 @@
   color: #fff;
 }
 
+/* ========== ADD TO AR BUTTON BELOW MINI-MAP ========== */
+.add-to-ar-button {
+  margin-top: 1rem;
+  padding: 10px 15px;
+  background-color: #10B981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.add-to-ar-button:hover {
+  background-color: #059669;
+}
+
 /* ========== MESSAGE BAR (BOTTOM) ========== */
 .message-bar-container {
   position: absolute;
@@ -198,6 +164,7 @@
   border-radius: 5px;
   border: 1px solid #ccc;
 }
+
 .theme-container.dark .message-bar {
   background-color: rgba(55, 65, 81, 0.5);
   border: 1px solid #4B5563;
@@ -212,6 +179,7 @@
   border-radius: 5px;
   cursor: pointer;
 }
+
 .send-button:hover {
   background-color: #2563EB;
 }
