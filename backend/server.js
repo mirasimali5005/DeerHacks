@@ -1,4 +1,4 @@
-const PROXIMITY = 1000;
+const PROXIMITY = 10000000000000000000000000000000000000000000;
 // server.js
 const express = require("express");
 const cors = require("cors");
